@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Langsy - Universal Language Translator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+      height: 100%;
+      margin: 0;
+    }
+    html {
+      height: 100%;
+    }
+    .rtl-text {
+      direction: rtl;
+      text-align: right;
+    }
+    .ltr-text {
+      direction: ltr;
+      text-align: left;
+    }
+    .loading-spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #FF9933;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #00E5FF 0%, #0D47A1 100%);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), 0 8px 16px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+      font-weight: 600;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .error-toast {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    .indian-pattern-bg {
+      background: linear-gradient(135deg, #0A0A0A 0%, #1a1a2e 50%, #0A0A0A 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .indian-pattern-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 30%, rgba(0, 229, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(13, 71, 161, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.1) 0%, transparent 50%);
+      opacity: 0.8;
+    }
+    .indian-pattern-bg::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 229, 255, 0.03) 2px,
+          rgba(0, 229, 255, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 2px,
+          rgba(13, 71, 161, 0.03) 2px,
+          rgba(13, 71, 161, 0.03) 4px
+        );
+    }
+    .map-glow {
+      animation: glow 3s ease-in-out infinite;
+    }
+    @keyframes glow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    .script-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="min-h-full">
+  <main class="min-h-full indian-pattern-bg"><!-- Hero Section with AI Brain Visualization -->
+   <header class="text-center py-12 px-4 relative overflow-hidden">
+    <div class="max-w-6xl mx-auto relative z-10">
+     <h1 class="text-5xl md:text-7xl font-extrabold mb-3 tracking-tight" style="color: #00E5FF; text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 229, 255, 0.4);">🤖 Langsy AI</h1>
+     <p class="text-lg md:text-xl font-medium mb-6" style="color: #00E5FF;">70+ Languages Supported</p><!-- AI Brain Visualization -->
+     <div class="flex justify-center my-8 relative" style="min-height: 300px;">
+      <svg width="600" height="300" viewbox="0 0 600 300" class="w-full max-w-2xl"><defs><!-- Glowing effect filters -->
+        <filter id="glow">
+         <fegaussianblur stddeviation="3" result="coloredBlur" />
+         <femerge>
+          <femergenode in="coloredBlur" />
+          <femergenode in="SourceGraphic" />
+         </femerge>
+        </filter>
+        <filter id="strongGlow">
+         <fegaussianblur stddeviation="5" result="coloredBlur" />
+         <femerge>
+          <femergenode in="coloredBlur" />
+          <femergenode in="SourceGraphic" />
+         </femerge>
+        </filter> <!-- Gradients -->
+        <lineargradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+         <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1" />
+         <stop offset="50%" style="stop-color:#0D47A1;stop-opacity:1" />
+         <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:1" />
+        </lineargradient>
+        <radialgradient id="neuronGlow">
+         <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1" />
+         <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0" />
+        </radialgradient>
+       </defs> <!-- Neural Network Connections (Background) --> <g opacity="0.5">
+        <line x1="300" y1="150" x2="150" y2="80" stroke="#00E5FF" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="2s" repeatcount="indefinite" />
+        </line>
+        <line x1="300" y1="150" x2="450" y2="80" stroke="#0D47A1" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="2.5s" repeatcount="indefinite" />
+        </line>
+        <line x1="300" y1="150" x2="200" y2="220" stroke="#00E5FF" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="3s" repeatcount="indefinite" />
+        </line>
+        <line x1="300" y1="150" x2="400" y2="220" stroke="#0D47A1" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="2.2s" repeatcount="indefinite" />
+        </line>
+        <line x1="300" y1="150" x2="100" y2="150" stroke="#00E5FF" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="2.8s" repeatcount="indefinite" />
+        </line>
+        <line x1="300" y1="150" x2="500" y2="150" stroke="#0D47A1" stroke-width="2" opacity="0.6" filter="url(#glow)">
+         <animate attributename="opacity" values="0.3;1;0.3" dur="2.4s" repeatcount="indefinite" />
+        </line>
+       </g> <!-- Central AI Brain --> <g filter="url(#strongGlow)"><!-- Brain outline -->
+        <ellipse cx="300" cy="150" rx="60" ry="70" fill="none" stroke="url(#brainGradient)" stroke-width="3" opacity="0.8">
+         <animate attributename="rx" values="60;65;60" dur="3s" repeatcount="indefinite" />
+         <animate attributename="ry" values="70;75;70" dur="3s" repeatcount="indefinite" />
+        </ellipse> <!-- Inner neural circuits -->
+        <path d="M280,130 Q290,140 300,130 T320,130" stroke="#00E5FF" stroke-width="2" fill="none" opacity="0.9" filter="url(#glow)">
+         <animate attributename="opacity" values="0.5;1;0.5" dur="2s" repeatcount="indefinite" />
+        </path>
+        <path d="M280,150 Q290,160 300,150 T320,150" stroke="#0D47A1" stroke-width="2" fill="none" opacity="0.9" filter="url(#glow)">
+         <animate attributename="opacity" values="0.5;1;0.5" dur="2.3s" repeatcount="indefinite" />
+        </path>
+        <path d="M280,170 Q290,180 300,170 T320,170" stroke="#00E5FF" stroke-width="2" fill="none" opacity="0.9" filter="url(#glow)">
+         <animate attributename="opacity" values="0.5;1;0.5" dur="2.6s" repeatcount="indefinite" />
+        </path> <!-- Central core -->
+        <circle cx="300" cy="150" r="15" fill="url(#brainGradient)" opacity="0.9">
+         <animate attributename="r" values="15;18;15" dur="2s" repeatcount="indefinite" />
+        </circle> <!-- Neural nodes -->
+        <circle cx="270" cy="140" r="4" fill="#00E5FF" filter="url(#glow)">
+         <animate attributename="r" values="4;6;4" dur="1.5s" repeatcount="indefinite" />
+        </circle>
+        <circle cx="330" cy="140" r="4" fill="#0D47A1" filter="url(#glow)">
+         <animate attributename="r" values="4;6;4" dur="1.8s" repeatcount="indefinite" />
+        </circle>
+        <circle cx="270" cy="160" r="4" fill="#00E5FF" filter="url(#glow)">
+         <animate attributename="r" values="4;6;4" dur="2.1s" repeatcount="indefinite" />
+        </circle>
+        <circle cx="330" cy="160" r="4" fill="#0D47A1" filter="url(#glow)">
+         <animate attributename="r" values="4;6;4" dur="1.7s" repeatcount="indefinite" />
+        </circle>
+       </g> <!-- Floating Language Bubbles --> <!-- Top Left - English A --> <g transform="translate(150, 80)">
+        <circle cx="0" cy="0" r="30" fill="rgba(0,229,255,0.15)" stroke="#00E5FF" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="3s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="10" font-size="32" font-weight="bold" fill="#00E5FF" text-anchor="middle">
+         A
+        </text>
+       </g> <!-- Top Right - Chinese 文 --> <g transform="translate(450, 80)">
+        <circle cx="0" cy="0" r="30" fill="rgba(13,71,161,0.15)" stroke="#0D47A1" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="3.5s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="10" font-size="28" font-weight="bold" fill="#0D47A1" text-anchor="middle">
+         文
+        </text>
+       </g> <!-- Bottom Left - Hindi अ --> <g transform="translate(200, 220)">
+        <circle cx="0" cy="0" r="30" fill="rgba(0,229,255,0.15)" stroke="#00E5FF" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="4s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="10" font-size="32" font-weight="bold" fill="#00E5FF" text-anchor="middle">
+         अ
+        </text>
+       </g> <!-- Bottom Right - Arabic ك --> <g transform="translate(400, 220)">
+        <circle cx="0" cy="0" r="30" fill="rgba(13,71,161,0.15)" stroke="#0D47A1" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="3.2s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="10" font-size="32" font-weight="bold" fill="#0D47A1" text-anchor="middle">
+         ك
+        </text>
+       </g> <!-- Left - Telugu తె --> <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="28" fill="rgba(0,229,255,0.15)" stroke="#00E5FF" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="3.8s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="8" font-size="24" font-weight="bold" fill="#00E5FF" text-anchor="middle">
+         తె
+        </text>
+       </g> <!-- Right - Tamil த --> <g transform="translate(500, 150)">
+        <circle cx="0" cy="0" r="28" fill="rgba(13,71,161,0.15)" stroke="#0D47A1" stroke-width="2" filter="url(#glow)">
+         <animatetransform attributename="transform" type="translate" values="0,0; 0,-10; 0,0" dur="3.3s" repeatcount="indefinite" />
+        </circle>
+        <text x="0" y="8" font-size="24" font-weight="bold" fill="#0D47A1" text-anchor="middle">
+         த
+        </text>
+       </g> <!-- Data flow particles --> <circle cx="150" cy="80" r="3" fill="#00E5FF" opacity="0.8" filter="url(#glow)">
+        <animatemotion path="M0,0 L150,70" dur="2s" repeatcount="indefinite" />
+        <animate attributename="opacity" values="0;1;0" dur="2s" repeatcount="indefinite" />
+       </circle> <circle cx="450" cy="80" r="3" fill="#0D47A1" opacity="0.8" filter="url(#glow)">
+        <animatemotion path="M0,0 L-150,70" dur="2.5s" repeatcount="indefinite" />
+        <animate attributename="opacity" values="0;1;0" dur="2.5s" repeatcount="indefinite" />
+       </circle>
+      </svg>
+     </div>
+     <div class="flex flex-wrap justify-center gap-3 mt-6"><span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(0,229,255,0.15); color: #00E5FF; border: 2px solid #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">हिंदी</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(13,71,161,0.15); color: #0D47A1; border: 2px solid #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">తెలుగు</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(0,229,255,0.15); color: #00E5FF; border: 2px solid #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">தமிழ்</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(13,71,161,0.15); color: #0D47A1; border: 2px solid #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">বাংলা</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(0,229,255,0.15); color: #00E5FF; border: 2px solid #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">മലയാളം</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(13,71,161,0.15); color: #0D47A1; border: 2px solid #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">मराठी</span> <span class="px-4 py-2 rounded-full font-semibold text-sm" style="background: rgba(0,229,255,0.15); color: #00E5FF; border: 2px solid #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">اردو</span>
+     </div>
+    </div>
+   </header><!-- Main Translator Container -->
+   <div class="max-w-6xl mx-auto px-4 pb-8 relative z-10">
+    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8" style="border: 3px solid #00E5FF; box-shadow: 0 0 30px rgba(0,229,255,0.3), 0 20px 60px rgba(0,0,0,0.5);"><!-- Language Selection -->
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div><label class="block text-sm font-semibold mb-2" style="color: #0D47A1;">From</label> <select id="source-lang" class="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition" style="border-color: #00E5FF; background: rgba(0,229,255,0.05);"> <option value="auto">Auto Detect</option> </select>
+      </div>
+      <div class="flex items-end justify-center"><button id="swap-btn" class="px-6 py-3 text-white rounded-xl font-semibold transition transform hover:scale-105 shadow-md" style="background: linear-gradient(135deg, #00E5FF 0%, #0D47A1 100%); box-shadow: 0 0 15px rgba(0,229,255,0.4);"> ⇄ Swap </button>
+      </div>
+      <div><label class="block text-sm font-semibold mb-2" style="color: #0D47A1;">To</label> <select id="target-lang" class="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition" style="border-color: #00E5FF; background: rgba(0,229,255,0.05);"> </select>
+      </div>
+     </div><!-- Text Areas -->
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div><label class="block text-sm font-semibold mb-2" style="color: #0D47A1;">Source Text</label> <textarea id="source-text" placeholder="Enter text to translate..." maxlength="500" class="w-full h-48 px-4 py-3 border-2 rounded-xl focus:outline-none resize-none transition" style="border-color: #00E5FF; background: rgba(0,229,255,0.05);"></textarea>
+       <div class="flex justify-between items-center mt-2"><span id="char-count" class="text-sm text-gray-500">0 / 500 characters</span> <button id="clear-btn" class="text-sm font-semibold" style="color: #00E5FF;">Clear</button>
+       </div>
+      </div>
+      <div><label class="block text-sm font-semibold mb-2" style="color: #0D47A1;">Translation</label>
+       <div class="relative"><textarea id="target-text" readonly placeholder="Translation will appear here..." class="w-full h-48 px-4 py-3 border-2 rounded-xl resize-none" style="border-color: #0D47A1; background: rgba(13,71,161,0.05);"></textarea>
+        <div id="loading-indicator" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+         <div class="loading-spinner"></div>
+        </div>
+       </div>
+       <div class="flex justify-end gap-2 mt-2"><button id="copy-btn" class="px-4 py-2 text-white rounded-xl font-semibold transition text-sm shadow-md" style="background: #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.4);"> 📋 Copy </button>
+       </div>
+      </div>
+     </div><!-- Translate Button -->
+     <div class="text-center"><button id="translate-btn" class="px-10 py-4 text-white rounded-2xl font-bold text-xl transition transform hover:scale-105 shadow-xl" style="background: linear-gradient(135deg, #00E5FF 0%, #0D47A1 100%); box-shadow: 0 0 30px rgba(0,229,255,0.5), 0 10px 40px rgba(0,0,0,0.3);"> ⚡ Translate with AI </button>
+     </div>
+    </div><!-- Translation History -->
+    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 mt-6" style="border: 3px solid #0D47A1; box-shadow: 0 0 30px rgba(13,71,161,0.3), 0 20px 60px rgba(0,0,0,0.5);">
+     <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold" style="color: #0D47A1;">📜 Translation History</h2><button id="clear-history-btn" class="px-4 py-2 text-white rounded-xl font-semibold transition text-sm shadow-md" style="background: #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.4);"> 🗑️ Clear All </button>
+     </div>
+     <div id="history-container" class="space-y-3">
+      <p class="text-gray-500 text-center py-8">No translations yet. Start translating to see your history!</p>
+     </div>
+    </div>
+   </div><!-- Footer with Tech Theme -->
+   <footer class="py-8 px-4 relative z-10">
+    <div class="max-w-6xl mx-auto text-center">
+     <div class="flex justify-center items-center gap-4 mb-4"><!-- Left Circuit -->
+      <svg width="60" height="60" viewbox="0 0 60 60"><circle cx="30" cy="30" r="20" stroke="#00E5FF" stroke-width="2" fill="none" opacity="0.6">
+        <animate attributename="r" values="20;22;20" dur="2s" repeatcount="indefinite" />
+       </circle> <circle cx="30" cy="30" r="5" fill="#00E5FF" />
+      </svg><!-- Text Bubbles with Scripts -->
+      <div class="flex gap-2">
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(0,229,255,0.2); color: #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">
+        हिं
+       </div>
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(13,71,161,0.2); color: #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">
+        తె
+       </div>
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(0,229,255,0.2); color: #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">
+        த
+       </div>
+      </div>
+      <svg width="40" height="40" viewbox="0 0 40 40"><path d="M5,20 L35,20 M30,15 L35,20 L30,25" stroke="#00E5FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+        <animate attributename="opacity" values="0.5;1;0.5" dur="2s" repeatcount="indefinite" />
+       </path>
+      </svg>
+      <div class="flex gap-2">
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(13,71,161,0.2); color: #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">
+        বা
+       </div>
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(0,229,255,0.2); color: #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.3);">
+        മ
+       </div>
+       <div class="px-4 py-2 rounded-2xl font-bold text-lg" style="background: rgba(13,71,161,0.2); color: #0D47A1; box-shadow: 0 0 10px rgba(13,71,161,0.3);">
+        ગુ
+       </div>
+      </div><!-- Right Circuit -->
+      <svg width="60" height="60" viewbox="0 0 60 60"><circle cx="30" cy="30" r="20" stroke="#0D47A1" stroke-width="2" fill="none" opacity="0.6">
+        <animate attributename="r" values="20;22;20" dur="2.5s" repeatcount="indefinite" />
+       </circle> <circle cx="30" cy="30" r="5" fill="#0D47A1" />
+      </svg>
+     </div>
+     <p class="text-lg font-semibold" style="color: #00E5FF; text-shadow: 0 0 10px rgba(0,229,255,0.5);">Breaking Language Barriers • Connecting the World</p>
+    </div>
+   </footer>
+  </main>
+  <script>
+    // Language database with 70+ world languages
+    const languages = [
+      { code: 'af', name: 'Afrikaans', rtl: false },
+      { code: 'sq', name: 'Albanian', rtl: false },
+      { code: 'am', name: 'Amharic', rtl: false },
+      { code: 'ar', name: 'Arabic', rtl: true },
+      { code: 'hy', name: 'Armenian', rtl: false },
+      { code: 'az', name: 'Azerbaijani', rtl: false },
+      { code: 'eu', name: 'Basque', rtl: false },
+      { code: 'be', name: 'Belarusian', rtl: false },
+      { code: 'bn', name: 'Bengali', rtl: false },
+      { code: 'bs', name: 'Bosnian', rtl: false },
+      { code: 'bg', name: 'Bulgarian', rtl: false },
+      { code: 'ca', name: 'Catalan', rtl: false },
+      { code: 'zh', name: 'Chinese (Simplified)', rtl: false },
+      { code: 'zh-TW', name: 'Chinese (Traditional)', rtl: false },
+      { code: 'hr', name: 'Croatian', rtl: false },
+      { code: 'cs', name: 'Czech', rtl: false },
+      { code: 'da', name: 'Danish', rtl: false },
+      { code: 'nl', name: 'Dutch', rtl: false },
+      { code: 'en', name: 'English', rtl: false },
+      { code: 'et', name: 'Estonian', rtl: false },
+      { code: 'fi', name: 'Finnish', rtl: false },
+      { code: 'fr', name: 'French', rtl: false },
+      { code: 'gl', name: 'Galician', rtl: false },
+      { code: 'ka', name: 'Georgian', rtl: false },
+      { code: 'de', name: 'German', rtl: false },
+      { code: 'el', name: 'Greek', rtl: false },
+      { code: 'gu', name: 'Gujarati', rtl: false },
+      { code: 'ht', name: 'Haitian Creole', rtl: false },
+      { code: 'he', name: 'Hebrew', rtl: true },
+      { code: 'hi', name: 'Hindi', rtl: false },
+      { code: 'hu', name: 'Hungarian', rtl: false },
+      { code: 'is', name: 'Icelandic', rtl: false },
+      { code: 'id', name: 'Indonesian', rtl: false },
+      { code: 'ga', name: 'Irish', rtl: false },
+      { code: 'it', name: 'Italian', rtl: false },
+      { code: 'ja', name: 'Japanese', rtl: false },
+      { code: 'kn', name: 'Kannada', rtl: false },
+      { code: 'kk', name: 'Kazakh', rtl: false },
+      { code: 'ko', name: 'Korean', rtl: false },
+      { code: 'lv', name: 'Latvian', rtl: false },
+      { code: 'lt', name: 'Lithuanian', rtl: false },
+      { code: 'mk', name: 'Macedonian', rtl: false },
+      { code: 'ms', name: 'Malay', rtl: false },
+      { code: 'ml', name: 'Malayalam', rtl: false },
+      { code: 'mt', name: 'Maltese', rtl: false },
+      { code: 'mr', name: 'Marathi', rtl: false },
+      { code: 'mn', name: 'Mongolian', rtl: false },
+      { code: 'ne', name: 'Nepali', rtl: false },
+      { code: 'no', name: 'Norwegian', rtl: false },
+      { code: 'or', name: 'Odia', rtl: false },
+      { code: 'fa', name: 'Persian', rtl: true },
+      { code: 'pl', name: 'Polish', rtl: false },
+      { code: 'pt', name: 'Portuguese', rtl: false },
+      { code: 'pa', name: 'Punjabi', rtl: false },
+      { code: 'ro', name: 'Romanian', rtl: false },
+      { code: 'ru', name: 'Russian', rtl: false },
+      { code: 'sr', name: 'Serbian', rtl: false },
+      { code: 'si', name: 'Sinhala', rtl: false },
+      { code: 'sk', name: 'Slovak', rtl: false },
+      { code: 'sl', name: 'Slovenian', rtl: false },
+      { code: 'es', name: 'Spanish', rtl: false },
+      { code: 'sw', name: 'Swahili', rtl: false },
+      { code: 'sv', name: 'Swedish', rtl: false },
+      { code: 'ta', name: 'Tamil', rtl: false },
+      { code: 'te', name: 'Telugu', rtl: false },
+      { code: 'th', name: 'Thai', rtl: false },
+      { code: 'tr', name: 'Turkish', rtl: false },
+      { code: 'uk', name: 'Ukrainian', rtl: false },
+      { code: 'ur', name: 'Urdu', rtl: true },
+      { code: 'uz', name: 'Uzbek', rtl: false },
+      { code: 'vi', name: 'Vietnamese', rtl: false },
+      { code: 'cy', name: 'Welsh', rtl: false },
+      { code: 'yi', name: 'Yiddish', rtl: true }
+    ];
+
+    let historyData = [];
+    let isTranslating = false;
+
+    // Load history from localStorage
+    function loadHistory() {
+      try {
+        const saved = localStorage.getItem('langsy_history');
+        if (saved) {
+          historyData = JSON.parse(saved);
+          renderHistory();
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+        historyData = [];
+      }
+    }
+
+    // Save history to localStorage
+    function saveHistory() {
+      try {
+        localStorage.setItem('langsy_history', JSON.stringify(historyData));
+      } catch (error) {
+        console.error('Error saving history:', error);
+        showToast('Failed to save history', true);
+      }
+    }
+
+    // Initialize dropdowns
+    function initializeDropdowns() {
+      const sourceLang = document.getElementById('source-lang');
+      const targetLang = document.getElementById('target-lang');
+      
+      languages.forEach(lang => {
+        const option = document.createElement('option');
+        option.value = lang.code;
+        option.textContent = lang.name;
+        targetLang.appendChild(option.cloneNode(true));
+        sourceLang.appendChild(option);
+      });
+      
+      // Set default languages
+      sourceLang.value = 'en';
+      targetLang.value = 'es';
+    }
+
+    // Sanitize HTML to prevent XSS
+    function sanitizeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Translation function with multiple API fallbacks
+    async function translateText(text, sourceLang, targetLang) {
+      if (!text.trim()) {
+        showToast('Please enter text to translate', true);
+        return null;
+      }
+
+      const sanitizedText = text.trim();
+
+      // API 1: MyMemory Translation (Most reliable free API)
+      try {
+        const langPair = sourceLang === 'auto' ? `en|${targetLang}` : `${sourceLang}|${targetLang}`;
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(sanitizedText)}&langpair=${langPair}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) throw new Error('API request failed');
+        
+        const data = await response.json();
+        
+        if (data.responseData && data.responseData.translatedText) {
+          // Check if it's a valid translation (not an error message)
+          const translation = data.responseData.translatedText;
+          if (!translation.includes('INVALID') && !translation.includes('MYMEMORY WARNING')) {
+            return {
+              translatedText: translation,
+              detectedLang: sourceLang
+            };
+          }
+        }
+        throw new Error('Invalid translation response');
+      } catch (error) {
+        console.error('MyMemory API failed:', error);
+      }
+
+      // API 2: LibreTranslate (Backup)
+      try {
+        const url = 'https://libretranslate.de/translate';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            q: sanitizedText,
+            source: sourceLang === 'auto' ? 'auto' : sourceLang,
+            target: targetLang,
+            format: 'text'
+          })
+        });
+        
+        if (!response.ok) throw new Error('API request failed');
+        
+        const data = await response.json();
+        if (data.translatedText) {
+          return {
+            translatedText: data.translatedText,
+            detectedLang: data.detectedLanguage?.language || sourceLang
+          };
+        }
+        throw new Error('No translation returned');
+      } catch (error) {
+        console.error('LibreTranslate API failed:', error);
+      }
+
+      // If all APIs fail
+      showToast('Translation service unavailable. Please try again later.', true);
+      return null;
+    }
+
+    // Show toast notification
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = isError ? 'toast error-toast' : 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Update character count
+    function updateCharCount() {
+      const text = document.getElementById('source-text').value;
+      const charCountEl = document.getElementById('char-count');
+      charCountEl.textContent = `${text.length} / 500 characters`;
+      
+      // Change color when approaching limit
+      if (text.length > 450) {
+        charCountEl.classList.add('text-red-500');
+        charCountEl.classList.remove('text-gray-500');
+      } else {
+        charCountEl.classList.add('text-gray-500');
+        charCountEl.classList.remove('text-red-500');
+      }
+    }
+
+    // Apply RTL/LTR direction
+    function applyTextDirection(element, langCode) {
+      const lang = languages.find(l => l.code === langCode);
+      if (lang && lang.rtl) {
+        element.classList.add('rtl-text');
+        element.classList.remove('ltr-text');
+      } else {
+        element.classList.add('ltr-text');
+        element.classList.remove('rtl-text');
+      }
+    }
+
+    // Render history
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      
+      if (historyData.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No translations yet. Start translating to see your history!</p>';
+        return;
+      }
+      
+      const sortedData = [...historyData].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      container.innerHTML = sortedData.map((item, index) => {
+        const sourceLangName = languages.find(l => l.code === item.source_lang)?.name || item.source_lang;
+        const targetLangName = languages.find(l => l.code === item.target_lang)?.name || item.target_lang;
+        const date = new Date(item.timestamp).toLocaleString();
+        
+        return `
+          <div class="border-2 rounded-xl p-4 hover:shadow-md transition" style="border-color: #FF9933; background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,153,51,0.05) 100%);">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-sm font-semibold" style="color: #000080;">${sanitizeHTML(sourceLangName)} → ${sanitizeHTML(targetLangName)}</span>
+              <button class="delete-history-btn text-sm font-semibold" style="color: #FF9933;" data-index="${index}">Delete</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <p class="text-sm text-gray-600 font-semibold mb-1">Original:</p>
+                <p class="text-gray-800">${sanitizeHTML(item.source_text)}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600 font-semibold mb-1">Translation:</p>
+                <p class="text-gray-800">${sanitizeHTML(item.translated_text)}</p>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">${sanitizeHTML(date)}</p>
+          </div>
+        `;
+      }).join('');
+
+      // Add delete event listeners
+      document.querySelectorAll('.delete-history-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          historyData.splice(index, 1);
+          saveHistory();
+          renderHistory();
+          showToast('Translation deleted');
+        });
+      });
+    }
+
+    // Initialize app
+    function initializeApp() {
+      initializeDropdowns();
+      loadHistory();
+
+      // Event listeners
+      document.getElementById('source-text').addEventListener('input', updateCharCount);
+      
+      document.getElementById('translate-btn').addEventListener('click', async () => {
+        if (isTranslating) return;
+        
+        const sourceText = document.getElementById('source-text').value;
+        const sourceLang = document.getElementById('source-lang').value;
+        const targetLang = document.getElementById('target-lang').value;
+        
+        if (!sourceText.trim()) {
+          showToast('Please enter text to translate', true);
+          return;
+        }
+
+        if (sourceText.length > 500) {
+          showToast('Text exceeds 500 character limit', true);
+          return;
+        }
+
+        if (historyData.length >= 100) {
+          showToast('History limit reached (100). Please clear some entries.', true);
+          return;
+        }
+        
+        isTranslating = true;
+        const translateBtn = document.getElementById('translate-btn');
+        translateBtn.disabled = true;
+        translateBtn.style.opacity = '0.6';
+        document.getElementById('loading-indicator').classList.remove('hidden');
+        
+        const result = await translateText(sourceText, sourceLang, targetLang);
+        
+        if (result) {
+          document.getElementById('target-text').value = result.translatedText;
+          applyTextDirection(document.getElementById('target-text'), targetLang);
+          
+          // Save to history
+          const historyItem = {
+            id: Date.now().toString(),
+            source_text: sourceText,
+            translated_text: result.translatedText,
+            source_lang: sourceLang,
+            target_lang: targetLang,
+            timestamp: new Date().toISOString()
+          };
+          
+          historyData.unshift(historyItem);
+          saveHistory();
+          renderHistory();
+          showToast('Translation completed!');
+        }
+        
+        isTranslating = false;
+        translateBtn.disabled = false;
+        translateBtn.style.opacity = '1';
+        document.getElementById('loading-indicator').classList.add('hidden');
+      });
+      
+      document.getElementById('swap-btn').addEventListener('click', () => {
+        const sourceLang = document.getElementById('source-lang');
+        const targetLang = document.getElementById('target-lang');
+        const sourceText = document.getElementById('source-text');
+        const targetText = document.getElementById('target-text');
+        
+        if (sourceLang.value === 'auto') {
+          showToast('Cannot swap with auto-detect', true);
+          return;
+        }
+        
+        const tempLang = sourceLang.value;
+        sourceLang.value = targetLang.value;
+        targetLang.value = tempLang;
+        
+        const tempText = sourceText.value;
+        sourceText.value = targetText.value;
+        targetText.value = tempText;
+        
+        updateCharCount();
+      });
+      
+      document.getElementById('clear-btn').addEventListener('click', () => {
+        document.getElementById('source-text').value = '';
+        document.getElementById('target-text').value = '';
+        updateCharCount();
+      });
+      
+      document.getElementById('copy-btn').addEventListener('click', () => {
+        const text = document.getElementById('target-text').value;
+        if (!text) {
+          showToast('No translation to copy', true);
+          return;
+        }
+        
+        // Use textarea selection method (most reliable in iframes)
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '0';
+        textarea.setAttribute('readonly', '');
+        document.body.appendChild(textarea);
+        
+        // Select the text
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+        
+        // Try to copy
+        let successful = false;
+        try {
+          successful = document.execCommand('copy');
+        } catch (err) {
+          successful = false;
+        }
+        
+        document.body.removeChild(textarea);
+        
+        if (successful) {
+          showToast('✅ Copied to clipboard!');
+        } else {
+          showToast('❌ Copy failed - please select and copy manually', true);
+        }
+      });
+      
+      document.getElementById('clear-history-btn').addEventListener('click', () => {
+        if (historyData.length === 0) {
+          showToast('No history to clear', true);
+          return;
+        }
+        
+        // Simple inline confirmation
+        const btn = document.getElementById('clear-history-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⚠️ Click again to confirm';
+        btn.style.background = 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)';
+        
+        const confirmHandler = () => {
+          historyData = [];
+          saveHistory();
+          renderHistory();
+          showToast('History cleared!');
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.removeEventListener('click', confirmHandler);
+        };
+        
+        btn.addEventListener('click', confirmHandler, { once: true });
+        
+        // Reset after 3 seconds if not confirmed
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.removeEventListener('click', confirmHandler);
+        }, 3000);
+      });
+    }
+
+    // Start the app
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99d683c4c0947fbd',t:'MTc2Mjk1NTU5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
